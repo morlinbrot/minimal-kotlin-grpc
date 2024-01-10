@@ -1,10 +1,6 @@
 // Build script taken from:
 // https://www.reddit.com/r/Kotlin/comments/18y2ei1/where_to_find_good_tutorials_kotlin_grpc_gradle/
-// For "tell IDE about changes" config, see also:
-// https://developers.google.com/actions-center/legacy/booking-server-code-samples/gRPC-v2/java.grpc-server
 import com.google.protobuf.gradle.id
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 
 buildscript {
     repositories {
@@ -15,6 +11,7 @@ buildscript {
 plugins {
     idea
     java
+    application
     kotlin("jvm") version "1.8.0"
     id("com.google.protobuf") version "0.9.1"
 }
@@ -39,6 +36,7 @@ val grpcVersion = "1.51.0"
 val grpcKotlinVersion = "1.3.0"
 val protobufVersion = "3.21.12"
 val coroutinesVersion = "1.6.4"
+val mainClassPath = "greeter.HelloWorldServerKt"
 
 dependencies {
     implementation("com.google.protobuf:protobuf-kotlin:$protobufVersion")
@@ -55,10 +53,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
-//application {
-//    mainClass.set("org.example.MainKt")
-//}
-//
+application {
+    mainClass = mainClassPath
+}
+
 kotlin {
     jvmToolchain(17)
 }
@@ -110,7 +108,7 @@ tasks {
     register("buildAndRun", JavaExec::class) {
         group = "execution"
         description = "Runs the application after generating proto files and compiling Kotlin code"
-        mainClass = "greeter.HelloWorldServerKt"
+        mainClass = mainClassPath
 
         classpath = sourceSets["main"].runtimeClasspath
         dependsOn("generateProto", "compileKotlin")
