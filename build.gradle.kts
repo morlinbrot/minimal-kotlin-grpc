@@ -11,7 +11,7 @@ buildscript {
 plugins {
     idea
     java
-    application
+    application // provides `run` task
     kotlin("jvm") version "1.8.0"
     id("com.google.protobuf") version "0.9.1"
 }
@@ -36,7 +36,8 @@ val grpcVersion = "1.51.0"
 val grpcKotlinVersion = "1.3.0"
 val protobufVersion = "3.21.12"
 val coroutinesVersion = "1.6.4"
-val mainClassPath = "greeter.HelloWorldServerKt"
+val serverClassPath = "greeter.HelloWorldServerKt"
+val clientClassPath = "greeter.HelloWorldClientKt"
 
 dependencies {
     implementation("com.google.protobuf:protobuf-kotlin:$protobufVersion")
@@ -54,7 +55,7 @@ tasks.test {
 }
 
 application {
-    mainClass = mainClassPath
+    mainClass = serverClassPath // `./gradlew run` will execute the server
 }
 
 kotlin {
@@ -96,22 +97,20 @@ protobuf {
     }
 }
 
-tasks {
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17" // Java 8 compatibility
-    }
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions.jvmTarget = "17" // Java 8 compatibility for test Kotlin code
-    }
+tasks.register("runServer", JavaExec::class) {
+    group = "execution"
+    description = "Run the gRPC server"
 
-    // Define a custom run task
-    register("buildAndRun", JavaExec::class) {
-        group = "execution"
-        description = "Runs the application after generating proto files and compiling Kotlin code"
-        mainClass = mainClassPath
-
-        classpath = sourceSets["main"].runtimeClasspath
-        dependsOn("generateProto", "compileKotlin")
-    }
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = serverClassPath
+    dependsOn("generateProto", "compileKotlin")
 }
 
+tasks.register("runClient", JavaExec::class) {
+    group = "execution"
+    description = "Run the gRPC client"
+
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = clientClassPath
+    dependsOn("generateProto", "compileKotlin")
+}
